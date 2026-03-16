@@ -1,5 +1,8 @@
 import pandas as pd
 import numpy as np
+import os
+
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 np.random.seed(42)
 n = 2000
@@ -24,7 +27,6 @@ coapplicant_income = np.where(
 )
 coapplicant_income = np.clip(coapplicant_income, 0, 50000)
 
-# Loan amount in thousands (up to 1000 = 10 lakhs)
 loan_amount = (applicant_income * np.random.uniform(0.8, 6.0, n) / 1000).astype(int)
 loan_amount = np.clip(loan_amount, 10, 1000)
 
@@ -35,7 +37,6 @@ cibil_score = np.where(credit_history == 1,
     np.random.randint(650, 900, n),
     np.random.randint(300, 649, n))
 
-# Realistic stricter scoring (more rejections)
 score = np.zeros(n)
 score += (cibil_score >= 750) * 0.35
 score += (cibil_score >= 650) * 0.10
@@ -54,7 +55,6 @@ score -= (self_employed == 'Yes') * 0.04
 score += np.random.uniform(-0.10, 0.10, n)
 score = np.clip(score, 0, 1)
 
-# Target: ~55% approve, 45% reject
 threshold = np.percentile(score, 45)
 loan_status = np.where(score > threshold, 'Y', 'N')
 
@@ -68,12 +68,16 @@ df = pd.DataFrame({
     'Loan_Status': loan_status
 })
 
-# Add realistic missing values
 for col in ['Gender','Married','Dependents','Self_Employed','LoanAmount','Loan_Amount_Term','Credit_History']:
     mask = np.random.random(n) < 0.025
     df.loc[mask, col] = np.nan
 
-df.to_csv('/home/claude/loan_system/data/loan_data.csv', index=False)
-print(f"Dataset: {len(df)} records")
+os.makedirs(os.path.join(BASE_DIR, 'data'), exist_ok=True)
+os.makedirs(os.path.join(BASE_DIR, 'instance'), exist_ok=True)
+os.makedirs(os.path.join(BASE_DIR, 'trained_models'), exist_ok=True)
+
+save_path = os.path.join(BASE_DIR, 'data', 'loan_data.csv')
+df.to_csv(save_path, index=False)
+print(f"Dataset saved to {save_path}")
 print(df['Loan_Status'].value_counts())
 print(f"Approval rate: {(df['Loan_Status']=='Y').mean():.1%}")
