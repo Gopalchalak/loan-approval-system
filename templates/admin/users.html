@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+{% block title %}Users - Admin{% endblock %}
+{% block content %}
+<div class="page-title">Registered Users</div>
+<div class="page-subtitle">All loan applicants in the system</div>
+<div class="card">
+  <div class="card-header"><i class="fas fa-users me-2 text-primary"></i>Users ({{ users|length }})</div>
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table mb-0">
+        <thead><tr><th>ID</th><th>Name</th><th>Email</th><th>Phone</th><th>Applications</th><th>Registered</th></tr></thead>
+        <tbody>
+          {% for u in users %}
+          <tr>
+            <td><strong>#{{ u.user_id }}</strong></td>
+            <td><div style="width:32px;height:32px;background:linear-gradient(135deg,#2563eb,#7c3aed);border-radius:50%;display:inline-flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:.8rem;margin-right:.5rem">{{ u.name[0].upper() }}</div>{{ u.name }}</td>
+            <td>{{ u.email }}</td>
+            <td>{{ u.phone or '—' }}</td>
+            <td><span class="badge bg-primary">{{ u.applications|length }}</span></td>
+            <td class="text-muted small">{{ u.created_at.strftime('%d %b %Y') }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+{% block title %}Admin Profile - LoanSense AI{% endblock %}
+{% block content %}
+<div class="page-title">Admin Profile</div>
+<div class="page-subtitle">Manage your administrator account</div>
+<div class="row g-4">
+  <div class="col-lg-6">
+    <div class="card">
+      <div class="card-header"><i class="fas fa-user-shield me-2 text-primary"></i>Edit Admin Profile</div>
+      <div class="card-body p-4">
+        <form method="POST">
+          <div class="text-center mb-4">
+            <div style="width:80px;height:80px;background:linear-gradient(135deg,#dc2626,#7c3aed);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto;color:#fff;font-size:2rem;font-weight:700">{{ current_user.name[0].upper() }}</div>
+            <div class="mt-2 fw-bold">{{ current_user.name }}</div>
+            <span class="badge bg-danger">Administrator</span>
+          </div>
+          <div class="mb-3"><label class="form-label fw-semibold small">Full Name *</label>
+            <input type="text" name="name" class="form-control" value="{{ current_user.name }}" required></div>
+          <div class="mb-3"><label class="form-label fw-semibold small">Email (read-only)</label>
+            <input type="email" class="form-control bg-light" value="{{ current_user.email }}" disabled></div>
+          <div class="mb-3"><label class="form-label fw-semibold small">Phone Number</label>
+            <div class="input-group"><span class="input-group-text"><i class="fas fa-phone text-muted"></i></span>
+            <input type="tel" name="phone" class="form-control" value="{{ current_user.phone or '' }}" placeholder="+91 9999999999"></div></div>
+          <div class="mb-3"><label class="form-label fw-semibold small">Address / Department</label>
+            <textarea name="address" class="form-control" rows="2">{{ current_user.address or '' }}</textarea></div>
+          <hr>
+          <div class="mb-3"><label class="form-label fw-semibold small">New Password <span class="text-muted">(leave blank to keep current)</span></label>
+            <div class="input-group"><span class="input-group-text"><i class="fas fa-lock text-muted"></i></span>
+            <input type="password" name="new_password" class="form-control" placeholder="New password"></div></div>
+          <button type="submit" class="btn btn-primary w-100 py-2 fw-semibold" style="border-radius:12px">
+            <i class="fas fa-save me-2"></i>Save Changes</button>
+        </form>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-6">
+    <div class="card">
+      <div class="card-header"><i class="fas fa-tachometer-alt me-2 text-primary"></i>System Overview</div>
+      <div class="card-body p-3">
+        <p class="text-muted small"><i class="fas fa-calendar me-2"></i>Admin since <strong>{{ current_user.created_at.strftime('%B %Y') }}</strong></p>
+        <p class="text-muted small"><i class="fas fa-envelope me-2"></i>{{ current_user.email }}</p>
+        <hr>
+        <div class="d-grid gap-2">
+          <a href="/admin/dashboard" class="btn btn-outline-primary btn-sm"><i class="fas fa-tachometer-alt me-2"></i>Go to Dashboard</a>
+          <a href="/admin/applications" class="btn btn-outline-secondary btn-sm"><i class="fas fa-file-alt me-2"></i>Review Applications</a>
+          <a href="/analytics" class="btn btn-outline-secondary btn-sm"><i class="fas fa-chart-bar me-2"></i>Analytics</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

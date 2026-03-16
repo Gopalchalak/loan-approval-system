@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+{% block title %}My Applications{% endblock %}
+{% block page_title %}My Applications{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="page-title">All My Applications</div>
+    <div class="page-subtitle">Complete history of your loan applications and their decisions.</div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <div class="card-title"><i class="fas fa-history" style="color:var(--accent-light);margin-right:8px;"></i>Application History ({{ applications|length }})</div>
+        <a href="{{ url_for('apply_loan') }}" class="btn btn-primary btn-sm">
+            <i class="fas fa-plus"></i> New Application
+        </a>
+    </div>
+
+    {% if applications %}
+    <div class="table-wrapper">
+        <table>
+            <thead>
+                <tr>
+                    <th>App ID</th>
+                    <th>Loan Amount</th>
+                    <th>Income</th>
+                    <th>Credit</th>
+                    <th>ML Prediction</th>
+                    <th>Probability</th>
+                    <th>Risk Level</th>
+                    <th>Admin Decision</th>
+                    <th>Applied Date</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for app in applications %}
+                <tr>
+                    <td><span style="font-family:'JetBrains Mono',monospace; color:var(--accent-light);">#{{ app.application_id }}</span></td>
+                    <td style="color:var(--text-primary); font-weight:600;">₹{{ "{:,.0f}".format(app.loan_amount * 1000) }}</td>
+                    <td style="color:var(--text-secondary);">₹{{ "{:,.0f}".format(app.applicant_income) }}/mo</td>
+                    <td>
+                        {% if app.credit_history == 1 %}
+                        <span class="badge badge-success"><i class="fas fa-check"></i> Good</span>
+                        {% else %}
+                        <span class="badge badge-danger"><i class="fas fa-times"></i> Bad</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if app.predicted_result == 'Approved' %}
+                        <span class="badge badge-success"><i class="fas fa-check"></i> Approved</span>
+                        {% elif app.predicted_result == 'Rejected' %}
+                        <span class="badge badge-danger"><i class="fas fa-times"></i> Rejected</span>
+                        {% else %}
+                        <span class="badge badge-muted"><i class="fas fa-clock"></i> Pending</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if app.probability %}
+                        <div style="display:flex; align-items:center; gap:6px;">
+                            <span style="font-family:'JetBrains Mono',monospace; font-size:13px; font-weight:600;
+                                color:{% if app.probability >= 70 %}var(--success-light){% elif app.probability >= 50 %}var(--warning-light){% else %}var(--danger-light){% endif %};">
+                                {{ "%.1f"|format(app.probability) }}%
+                            </span>
+                        </div>
+                        {% else %}—{% endif %}
+                    </td>
+                    <td>
+                        {% if app.risk_level == 'Low Risk' %}
+                        <span class="badge badge-success">🟢 Low</span>
+                        {% elif app.risk_level == 'Medium Risk' %}
+                        <span class="badge badge-warning">🟡 Medium</span>
+                        {% elif app.risk_level == 'High Risk' %}
+                        <span class="badge badge-danger">🔴 High</span>
+                        {% else %}
+                        <span class="badge badge-muted">—</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if app.admin_decision == 'Approved' %}
+                        <span class="badge badge-success">✅ Approved</span>
+                        {% elif app.admin_decision == 'Rejected' %}
+                        <span class="badge badge-danger">❌ Rejected</span>
+                        {% else %}
+                        <span class="badge badge-warning"><i class="fas fa-clock"></i> Awaiting</span>
+                        {% endif %}
+                    </td>
+                    <td style="color:var(--text-muted); font-size:12px;">{{ app.applied_at[:10] if app.applied_at else 'N/A' }}</td>
+                    <td>
+                        <a href="{{ url_for('application_result', app_id=app.application_id) }}" class="btn btn-outline btn-sm">
+                            <i class="fas fa-eye"></i> View
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div style="text-align:center; padding:60px 20px; color:var(--text-muted);">
+        <i class="fas fa-inbox" style="font-size:48px; margin-bottom:16px; opacity:0.3;"></i>
+        <div style="font-size:16px; font-weight:600; color:var(--text-secondary); margin-bottom:8px;">No Applications Yet</div>
+        <p style="font-size:13px; margin-bottom:20px;">You haven't applied for any loans yet.</p>
+        <a href="{{ url_for('apply_loan') }}" class="btn btn-primary">
+            <i class="fas fa-plus"></i> Apply for a Loan
+        </a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

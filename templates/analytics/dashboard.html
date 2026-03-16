@@ -1,0 +1,115 @@
+{% extends 'base.html' %}
+{% block title %}Analytics - LoanSense AI{% endblock %}
+{% block content %}
+<div class="page-title"><i class="fas fa-chart-bar me-2" style="color:var(--primary)"></i>Analytics Dashboard</div>
+<div class="page-subtitle">Visual insights on loan approval patterns and ML model performance</div>
+<div id="loadingState" class="text-center py-5">
+  <div class="spinner-border text-primary mb-3"></div>
+  <p class="text-muted">Loading analytics data...</p>
+</div>
+<div id="analyticsContent" style="display:none">
+  <div class="row g-4 mb-4" id="statsRow"></div>
+  <div class="row g-4">
+    <div class="col-lg-5">
+      <div class="card h-100">
+        <div class="card-header"><i class="fas fa-chart-pie me-2 text-primary"></i>Approval vs Rejection Distribution</div>
+        <div class="card-body d-flex align-items-center justify-content-center"><canvas id="statusChart" height="220"></canvas></div>
+      </div>
+    </div>
+    <div class="col-lg-7">
+      <div class="card h-100">
+        <div class="card-header"><i class="fas fa-credit-card me-2 text-primary"></i>Credit History Impact on Approval</div>
+        <div class="card-body"><canvas id="creditChart" height="170"></canvas></div>
+      </div>
+    </div>
+    <div class="col-lg-4">
+      <div class="card h-100">
+        <div class="card-header"><i class="fas fa-map-marker-alt me-2 text-primary"></i>Applications by Property Area</div>
+        <div class="card-body d-flex align-items-center justify-content-center"><canvas id="propertyChart" height="200"></canvas></div>
+      </div>
+    </div>
+    <div class="col-lg-4">
+      <div class="card h-100">
+        <div class="card-header"><i class="fas fa-shield-alt me-2 text-primary"></i>Risk Level Distribution</div>
+        <div class="card-body d-flex align-items-center justify-content-center"><canvas id="riskChart" height="200"></canvas></div>
+      </div>
+    </div>
+    <div class="col-lg-4">
+      <div class="card h-100">
+        <div class="card-header"><i class="fas fa-tags me-2 text-primary"></i>Applications by Loan Type</div>
+        <div class="card-body d-flex align-items-center justify-content-center"><canvas id="loanTypeChart" height="200"></canvas></div>
+      </div>
+    </div>
+    <div class="col-12">
+      <div class="card">
+        <div class="card-header"><i class="fas fa-graduation-cap me-2 text-primary"></i>Approval Status by Education Level</div>
+        <div class="card-body"><canvas id="educationChart" height="90"></canvas></div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block extra_js %}
+<script>
+const COLORS = {
+  blue:'rgba(37,99,235,0.85)', purple:'rgba(124,58,237,0.85)', green:'rgba(5,150,105,0.85)',
+  red:'rgba(220,38,38,0.85)', orange:'rgba(217,119,6,0.85)', cyan:'rgba(8,145,178,0.85)',
+  pink:'rgba(219,39,119,0.85)', teal:'rgba(13,148,136,0.85)'
+};
+
+fetch('/api/analytics/overview').then(r=>r.json()).then(data=>{
+  document.getElementById('loadingState').style.display='none';
+  document.getElementById('analyticsContent').style.display='block';
+
+  const s=data.status_counts;
+  const total=data.total_apps;
+  const approveRate = total > 0 ? Math.round((s.Approved||0)/total*100) : 0;
+  document.getElementById('statsRow').innerHTML=`
+    <div class="col-sm-6 col-xl-3"><div class="stat-card gradient-blue"><div class="stat-num">${total}</div><div class="stat-label">Total Applications</div><i class="fas fa-file-alt icon"></i></div></div>
+    <div class="col-sm-6 col-xl-3"><div class="stat-card gradient-green"><div class="stat-num">${s.Approved||0}</div><div class="stat-label">Approved Loans</div><i class="fas fa-check-circle icon"></i></div></div>
+    <div class="col-sm-6 col-xl-3"><div class="stat-card gradient-orange"><div class="stat-num">${s.Rejected||0}</div><div class="stat-label">Rejected Loans</div><i class="fas fa-times-circle icon"></i></div></div>
+    <div class="col-sm-6 col-xl-3"><div class="stat-card gradient-purple"><div class="stat-num">${approveRate}%</div><div class="stat-label">Approval Rate</div><i class="fas fa-percentage icon"></i></div></div>`;
+
+  new Chart(document.getElementById('statusChart'),{type:'doughnut',
+    data:{labels:Object.keys(s),datasets:[{data:Object.values(s),
+      backgroundColor:[COLORS.green,COLORS.red,COLORS.orange],borderWidth:0,hoverOffset:10}]},
+    options:{responsive:true,plugins:{legend:{position:'bottom'}},cutout:'70%'}});
+
+  const ca=data.credit_approval;
+  new Chart(document.getElementById('creditChart'),{type:'bar',
+    data:{labels:Object.keys(ca),datasets:[
+      {label:'Approved',data:Object.values(ca).map(v=>v.Approved||0),backgroundColor:COLORS.green,borderRadius:6},
+      {label:'Rejected',data:Object.values(ca).map(v=>v.Rejected||0),backgroundColor:COLORS.red,borderRadius:6},
+      {label:'Pending',data:Object.values(ca).map(v=>v.Pending||0),backgroundColor:COLORS.orange,borderRadius:6}]},
+    options:{responsive:true,plugins:{legend:{position:'top'}}}});
+
+  const pc=data.property_counts;
+  new Chart(document.getElementById('propertyChart'),{type:'pie',
+    data:{labels:Object.keys(pc),datasets:[{data:Object.values(pc),
+      backgroundColor:[COLORS.blue,COLORS.purple,COLORS.green],borderWidth:0}]},
+    options:{responsive:true,plugins:{legend:{position:'bottom'}}}});
+
+  const rc=data.risk_counts;
+  new Chart(document.getElementById('riskChart'),{type:'doughnut',
+    data:{labels:Object.keys(rc),datasets:[{data:Object.values(rc),
+      backgroundColor:[COLORS.green,COLORS.orange,COLORS.red],borderWidth:0,hoverOffset:8}]},
+    options:{responsive:true,plugins:{legend:{position:'bottom'}},cutout:'60%'}});
+
+  const lt=data.loan_type_counts;
+  if(lt && Object.keys(lt).length > 0) {
+    new Chart(document.getElementById('loanTypeChart'),{type:'pie',
+      data:{labels:Object.keys(lt),datasets:[{data:Object.values(lt),
+        backgroundColor:[COLORS.blue,COLORS.purple,COLORS.green,COLORS.orange,COLORS.cyan,COLORS.pink],borderWidth:0}]},
+      options:{responsive:true,plugins:{legend:{position:'bottom'}}}});
+  }
+
+  const ea=data.education_approval;
+  new Chart(document.getElementById('educationChart'),{type:'bar',
+    data:{labels:Object.keys(ea),datasets:[
+      {label:'Approved',data:Object.values(ea).map(v=>v.Approved||0),backgroundColor:COLORS.green,borderRadius:6},
+      {label:'Rejected',data:Object.values(ea).map(v=>v.Rejected||0),backgroundColor:COLORS.red,borderRadius:6},
+      {label:'Pending',data:Object.values(ea).map(v=>v.Pending||0),backgroundColor:COLORS.orange,borderRadius:6}]},
+    options:{responsive:true,indexAxis:'y',plugins:{legend:{position:'top'}}}});
+});
+</script>
+{% endblock %}

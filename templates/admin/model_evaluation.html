@@ -1,0 +1,89 @@
+{% extends 'base.html' %}
+{% block title %}Model Evaluation - Admin{% endblock %}
+{% block extra_css %}
+<style>
+.metric-card { border-radius:16px; padding:1.5rem; border:2px solid transparent; transition:.2s; }
+.metric-card.best { border-color:#2563eb; background:#eff6ff; }
+.metric-bar { height:8px; border-radius:4px; background:#e2e8f0; overflow:hidden; }
+.metric-fill { height:100%; border-radius:4px; transition:width 1s ease; }
+</style>
+{% endblock %}
+{% block content %}
+<div class="page-title">Model Evaluation</div>
+<div class="page-subtitle">Performance metrics of trained ML models</div>
+
+{% if results and results.results %}
+<div class="alert alert-primary mb-4">
+  <i class="fas fa-trophy me-2"></i><strong>Best Model: {{ results.best_model }}</strong> — Selected for production predictions
+</div>
+<div class="row g-4 mb-4">
+  {% for name, metrics in results.results.items() %}
+  <div class="col-lg-4">
+    <div class="metric-card card {{ 'best' if name == results.best_model else '' }}">
+      <div class="d-flex justify-content-between align-items-start mb-3">
+        <div>
+          <h5 class="fw-bold mb-0">{{ name }}</h5>
+          {% if name == results.best_model %}<span class="badge bg-primary small">Best Model</span>{% endif %}
+        </div>
+        <div style="width:48px;height:48px;background:{{ '#eff6ff' if name == results.best_model else '#f8fafc' }};border-radius:12px;display:flex;align-items:center;justify-content:center">
+          <i class="fas fa-{{ 'random' if 'Random' in name else 'tree' if 'Tree' in name else 'chart-line' }}" style="color:#2563eb"></i>
+        </div>
+      </div>
+      {% for metric in ['accuracy','precision','recall','f1_score'] %}
+      <div class="mb-3">
+        <div class="d-flex justify-content-between small mb-1">
+          <span class="text-muted text-capitalize">{{ metric.replace('_',' ') }}</span>
+          <strong>{{ "%.2f"|format(metrics[metric]*100) }}%</strong>
+        </div>
+        <div class="metric-bar">
+          <div class="metric-fill bg-primary" style="width:{{ metrics[metric]*100 }}%"></div>
+        </div>
+      </div>
+      {% endfor %}
+      {% if metrics.confusion_matrix %}
+      <div class="mt-3 p-2 rounded" style="background:#f8fafc">
+        <div class="small text-muted mb-1 fw-semibold">Confusion Matrix</div>
+        <div class="d-flex gap-2 justify-content-center">
+          {% for row in metrics.confusion_matrix %}
+          <div>{% for val in row %}<span class="badge {{ 'bg-success' if loop.index == loop.length else 'bg-secondary' }} me-1">{{ val }}</span>{% endfor %}</div>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+  {% endfor %}
+</div>
+<div class="card">
+  <div class="card-header"><i class="fas fa-chart-bar me-2 text-primary"></i>Model Comparison</div>
+  <div class="card-body">
+    <canvas id="modelChart" height="100"></canvas>
+  </div>
+</div>
+{% else %}
+<div class="alert alert-warning"><i class="fas fa-exclamation-triangle me-2"></i>No model results available. Please train models first.</div>
+{% endif %}
+{% endblock %}
+{% block extra_js %}
+<script>
+{% if results and results.results %}
+const ctx = document.getElementById('modelChart').getContext('2d');
+const models = {{ results.results.keys()|list|tojson }};
+const metrics = {{ results.results.values()|list|tojson }};
+new Chart(ctx, {
+  type: 'bar',
+  data: {
+    labels: models,
+    datasets: [
+      { label: 'Accuracy', data: metrics.map(m => (m.accuracy*100).toFixed(2)), backgroundColor: 'rgba(37,99,235,0.8)', borderRadius: 6 },
+      { label: 'Precision', data: metrics.map(m => (m.precision*100).toFixed(2)), backgroundColor: 'rgba(124,58,237,0.8)', borderRadius: 6 },
+      { label: 'Recall', data: metrics.map(m => (m.recall*100).toFixed(2)), backgroundColor: 'rgba(5,150,105,0.8)', borderRadius: 6 },
+      { label: 'F1 Score', data: metrics.map(m => (m.f1_score*100).toFixed(2)), backgroundColor: 'rgba(217,119,6,0.8)', borderRadius: 6 }
+    ]
+  },
+  options: { responsive: true, plugins: { legend: { position: 'top' } },
+    scales: { y: { min: 80, max: 100, ticks: { callback: v => v + '%' } } } }
+});
+{% endif %}
+</script>
+{% endblock %}

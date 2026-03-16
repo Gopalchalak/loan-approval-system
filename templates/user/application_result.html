@@ -1,0 +1,177 @@
+{% extends "base.html" %}
+{% block title %}Application Result{% endblock %}
+{% block page_title %}Application Result{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="page-title">Application #{{ application.application_id }}</div>
+    <div class="page-subtitle">Submitted on {{ application.applied_at[:16] if application.applied_at else 'N/A' }}</div>
+</div>
+
+<!-- PREDICTION RESULT HERO -->
+{% if application.predicted_result %}
+<div class="card mb-4" style="
+    {% if application.predicted_result == 'Approved' %}
+    background: linear-gradient(135deg, rgba(16,185,129,0.08), rgba(16,185,129,0.02));
+    border-color: rgba(16,185,129,0.3);
+    {% else %}
+    background: linear-gradient(135deg, rgba(239,68,68,0.08), rgba(239,68,68,0.02));
+    border-color: rgba(239,68,68,0.3);
+    {% endif %}
+    text-align: center; padding: 36px;
+">
+    <div style="font-size:64px; margin-bottom:16px;">
+        {% if application.predicted_result == 'Approved' %}✅{% else %}❌{% endif %}
+    </div>
+    <div style="font-family:'Syne',sans-serif; font-size:32px; font-weight:900; margin-bottom:8px;
+        color: {% if application.predicted_result == 'Approved' %}var(--success-light){% else %}var(--danger-light){% endif %};">
+        ML Prediction: {{ application.predicted_result }}
+    </div>
+    <div style="font-size:15px; color:var(--text-secondary); margin-bottom:24px;">
+        {% if application.predicted_result == 'Approved' %}
+        🎉 Your loan application looks favorable! An admin will review and finalize the decision.
+        {% else %}
+        ⚠️ The ML model predicts a rejection. An admin may override this decision after review.
+        {% endif %}
+    </div>
+
+    <!-- Probability & Risk -->
+    <div style="display:inline-flex; gap:32px; padding:20px 40px; background:rgba(0,0,0,0.2); border-radius:12px; border:1px solid var(--border);">
+        <div>
+            <div style="font-size:12px; color:var(--text-muted); margin-bottom:4px; text-transform:uppercase; letter-spacing:0.5px;">Approval Probability</div>
+            <div style="font-family:'Syne',sans-serif; font-size:36px; font-weight:900;
+                color: {% if application.probability >= 70 %}var(--success-light){% elif application.probability >= 50 %}var(--warning-light){% else %}var(--danger-light){% endif %};">
+                {{ "%.1f"|format(application.probability) }}%
+            </div>
+        </div>
+        <div style="width:1px; background:var(--border);"></div>
+        <div>
+            <div style="font-size:12px; color:var(--text-muted); margin-bottom:4px; text-transform:uppercase; letter-spacing:0.5px;">Risk Level</div>
+            <div style="font-family:'Syne',sans-serif; font-size:28px; font-weight:900;
+                color: {% if application.risk_level == 'Low Risk' %}var(--success-light){% elif application.risk_level == 'Medium Risk' %}var(--warning-light){% else %}var(--danger-light){% endif %};">
+                {% if application.risk_level == 'Low Risk' %}🟢{% elif application.risk_level == 'Medium Risk' %}🟡{% else %}🔴{% endif %}
+                {{ application.risk_level }}
+            </div>
+        </div>
+        <div style="width:1px; background:var(--border);"></div>
+        <div>
+            <div style="font-size:12px; color:var(--text-muted); margin-bottom:4px; text-transform:uppercase; letter-spacing:0.5px;">Model Used</div>
+            <div style="font-family:'Syne',sans-serif; font-size:16px; font-weight:700; color:var(--accent-light);">
+                {{ application.model_used or 'N/A' }}
+            </div>
+        </div>
+    </div>
+
+    <!-- Probability bar -->
+    <div style="margin-top:24px; max-width:400px; margin-left:auto; margin-right:auto;">
+        <div style="display:flex; justify-content:space-between; font-size:11px; color:var(--text-muted); margin-bottom:6px;">
+            <span>0%</span><span>Approval Probability</span><span>100%</span>
+        </div>
+        <div style="height:10px; background:rgba(255,255,255,0.07); border-radius:10px; overflow:hidden;">
+            <div style="height:100%; width:{{ application.probability }}%;
+                background: linear-gradient(90deg, {% if application.probability >= 70 %}#10b981, #34d399{% elif application.probability >= 50 %}#f59e0b, #fbbf24{% else %}#ef4444, #f87171{% endif %});
+                border-radius:10px; transition:width 1s ease;"></div>
+        </div>
+    </div>
+</div>
+
+<!-- Admin Decision -->
+{% if application.admin_decision %}
+<div class="card mb-4" style="
+    {% if application.admin_decision == 'Approved' %}
+    border-color: rgba(16,185,129,0.4); background: rgba(16,185,129,0.04);
+    {% else %}
+    border-color: rgba(239,68,68,0.4); background: rgba(239,68,68,0.04);
+    {% endif %}
+">
+    <div style="display:flex; align-items:center; gap:16px;">
+        <div style="width:52px; height:52px; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:24px;
+            background: {% if application.admin_decision == 'Approved' %}rgba(16,185,129,0.15){% else %}rgba(239,68,68,0.15){% endif %};">
+            {% if application.admin_decision == 'Approved' %}✅{% else %}❌{% endif %}
+        </div>
+        <div>
+            <div style="font-family:'Syne',sans-serif; font-size:18px; font-weight:800; margin-bottom:4px;
+                color: {% if application.admin_decision == 'Approved' %}var(--success-light){% else %}var(--danger-light){% endif %};">
+                Final Admin Decision: {{ application.admin_decision }}
+            </div>
+            {% if application.remarks %}
+            <div style="font-size:13px; color:var(--text-secondary);">Remarks: {{ application.remarks }}</div>
+            {% endif %}
+            {% if application.decision_date %}
+            <div style="font-size:12px; color:var(--text-muted);">Decided on: {{ application.decision_date[:16] }}</div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% else %}
+<div class="card mb-4" style="border-color:rgba(245,158,11,0.3); background:rgba(245,158,11,0.04);">
+    <div style="display:flex; align-items:center; gap:12px;">
+        <i class="fas fa-clock" style="font-size:24px; color:var(--warning-light);"></i>
+        <div>
+            <div style="font-weight:700; color:var(--warning-light);">Awaiting Admin Review</div>
+            <div style="font-size:13px; color:var(--text-secondary);">An admin will review your application and make the final decision soon.</div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endif %}
+
+<!-- Application Details Grid -->
+<div class="grid-2" style="margin-bottom:20px;">
+    <div class="card">
+        <div class="card-title" style="margin-bottom:14px;"><i class="fas fa-user" style="color:var(--accent-light);margin-right:8px;"></i>Personal Details</div>
+        <div style="display:flex; flex-direction:column; gap:10px;">
+            {% for label, value in [
+                ('Applicant Name', application.applicant_name),
+                ('Email', application.applicant_email),
+                ('Gender', application.gender or 'N/A'),
+                ('Marital Status', ('Married' if application.married == 'Yes' else 'Single')),
+                ('Dependents', application.dependents),
+                ('Education', application.education),
+                ('Employment', application.employment_status)
+            ] %}
+            <div style="display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid var(--border); font-size:13px;">
+                <span style="color:var(--text-muted);">{{ label }}</span>
+                <span style="color:var(--text-primary); font-weight:500;">{{ value }}</span>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-title" style="margin-bottom:14px;"><i class="fas fa-rupee-sign" style="color:var(--success-light);margin-right:8px;"></i>Financial Details</div>
+        <div style="display:flex; flex-direction:column; gap:10px;">
+            {% for label, value in [
+                ('Applicant Income', '₹' + "{:,.0f}".format(application.applicant_income)),
+                ('Co-Applicant Income', '₹' + "{:,.0f}".format(application.coapplicant_income or 0)),
+                ('Total Income', '₹' + "{:,.0f}".format((application.applicant_income or 0) + (application.coapplicant_income or 0))),
+                ('Loan Amount', '₹' + "{:,.0f}".format(application.loan_amount * 1000)),
+                ('Loan Tenure', str(application.loan_amount_term) + ' months'),
+                ('Credit History', ('✅ Good (1)' if application.credit_history == 1 else '❌ Bad (0)')),
+                ('Property Area', application.property_area)
+            ] %}
+            <div style="display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid var(--border); font-size:13px;">
+                <span style="color:var(--text-muted);">{{ label }}</span>
+                <span style="color:var(--text-primary); font-weight:500;">{{ value }}</span>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<!-- Actions -->
+<div style="display:flex; gap:12px; flex-wrap:wrap;">
+    <a href="{{ url_for('apply_loan') }}" class="btn btn-primary">
+        <i class="fas fa-plus"></i> New Application
+    </a>
+    <a href="{{ url_for('my_applications') }}" class="btn btn-outline">
+        <i class="fas fa-list"></i> All Applications
+    </a>
+    <a href="{{ url_for('chatbot') }}" class="btn btn-outline">
+        <i class="fas fa-robot"></i> Ask AI Assistant
+    </a>
+    <a href="{{ url_for('dashboard') }}" class="btn btn-outline">
+        <i class="fas fa-home"></i> Dashboard
+    </a>
+</div>
+{% endblock %}

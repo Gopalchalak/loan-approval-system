@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}LoanSense AI{% endblock %}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root { --primary:#2563eb;--primary-dark:#1d4ed8;--secondary:#7c3aed;--success:#059669;--danger:#dc2626;--warning:#d97706;--dark:#0f172a;--sidebar-w:265px; }
+        * { font-family:'Inter',sans-serif; }
+        body { background:#f1f5f9; min-height:100vh; }
+        .topnav { background:#fff!important; box-shadow:0 1px 4px rgba(0,0,0,.08); height:62px; position:fixed; top:0; left:0; right:0; z-index:200; display:flex; align-items:center; padding:0 1.5rem; gap:1rem; }
+        .brand { font-weight:800; font-size:1.35rem; color:var(--primary); text-decoration:none; display:flex; align-items:center; gap:.6rem; }
+        .topnav-right { margin-left:auto; display:flex; align-items:center; gap:1rem; }
+        .user-pill { display:flex; align-items:center; gap:.6rem; background:#f8fafc; border:1.5px solid #e2e8f0; border-radius:50px; padding:.4rem 1rem .4rem .5rem; cursor:pointer; text-decoration:none; color:var(--dark); transition:.2s; }
+        .user-pill:hover { border-color:var(--primary); background:#eff6ff; }
+        .user-avatar { width:32px; height:32px; border-radius:50%; background:linear-gradient(135deg,var(--primary),var(--secondary)); display:flex; align-items:center; justify-content:center; color:#fff; font-weight:700; font-size:.85rem; }
+        .sidebar { width:var(--sidebar-w); min-height:calc(100vh - 62px); background:var(--dark); position:fixed; top:62px; left:0; z-index:100; overflow-y:auto; padding-bottom:2rem; }
+        .sidebar-logo-area { padding:1.2rem 1.2rem .5rem; border-bottom:1px solid rgba(255,255,255,.07); margin-bottom:.5rem; }
+        .sidebar-user { display:flex; align-items:center; gap:.75rem; }
+        .sidebar-avatar { width:40px; height:40px; border-radius:50%; background:linear-gradient(135deg,var(--primary),var(--secondary)); display:flex; align-items:center; justify-content:center; color:#fff; font-weight:700; font-size:1rem; flex-shrink:0; }
+        .sidebar-name { font-size:.9rem; font-weight:600; color:#f1f5f9; }
+        .sidebar-role { font-size:.72rem; color:#64748b; }
+        .sidebar-section { color:#475569; font-size:.68rem; font-weight:700; text-transform:uppercase; letter-spacing:1.2px; padding:.9rem 1.2rem .3rem; }
+        .nav-link { color:#94a3b8; padding:.65rem 1rem; border-radius:10px; margin:2px 10px; transition:.18s; font-size:.875rem; display:flex; align-items:center; gap:.65rem; text-decoration:none; }
+        .nav-link i { width:18px; text-align:center; font-size:.9rem; }
+        .nav-link:hover { color:#e2e8f0; background:rgba(255,255,255,.06); }
+        .nav-link.active { color:#fff; background:linear-gradient(135deg,rgba(37,99,235,.5),rgba(124,58,237,.3)); border-left:3px solid var(--primary); }
+        .nav-link .badge { margin-left:auto; font-size:.68rem; }
+        .main-content { margin-left:var(--sidebar-w); padding:2rem; min-height:calc(100vh - 62px); margin-top:62px; }
+        .card { border:none; border-radius:16px; box-shadow:0 1px 3px rgba(0,0,0,.07); }
+        .card-header { background:none; border-bottom:1px solid #f1f5f9; padding:1.1rem 1.4rem; font-weight:600; font-size:.95rem; }
+        .stat-card { border-radius:16px; padding:1.5rem; color:#fff; position:relative; overflow:hidden; }
+        .stat-card::after { content:''; position:absolute; right:-20px; top:-20px; width:100px; height:100px; border-radius:50%; background:rgba(255,255,255,.1); }
+        .stat-card .icon { position:absolute; right:20px; top:50%; transform:translateY(-50%); font-size:2.2rem; opacity:.25; }
+        .stat-num { font-size:2.2rem; font-weight:800; line-height:1; }
+        .stat-label { font-size:.82rem; opacity:.8; margin-top:.3rem; }
+        .gradient-blue { background:linear-gradient(135deg,#2563eb,#1d4ed8); }
+        .gradient-green { background:linear-gradient(135deg,#059669,#0d9488); }
+        .gradient-orange { background:linear-gradient(135deg,#d97706,#dc2626); }
+        .gradient-purple { background:linear-gradient(135deg,#7c3aed,#db2777); }
+        .gradient-cyan { background:linear-gradient(135deg,#0891b2,#2563eb); }
+        .badge-approved { background:#dcfce7; color:#166534; border-radius:20px; padding:4px 12px; font-size:.78rem; font-weight:600; }
+        .badge-rejected { background:#fee2e2; color:#991b1b; border-radius:20px; padding:4px 12px; font-size:.78rem; font-weight:600; }
+        .badge-pending { background:#fef3c7; color:#92400e; border-radius:20px; padding:4px 12px; font-size:.78rem; font-weight:600; }
+        .risk-low { background:#dcfce7; color:#166534; border-radius:12px; padding:3px 10px; font-size:.78rem; font-weight:600; }
+        .risk-medium { background:#fef3c7; color:#92400e; border-radius:12px; padding:3px 10px; font-size:.78rem; font-weight:600; }
+        .risk-high { background:#fee2e2; color:#991b1b; border-radius:12px; padding:3px 10px; font-size:.78rem; font-weight:600; }
+        .form-control, .form-select { border-radius:10px; border:1.5px solid #e2e8f0; padding:.65rem 1rem; font-size:.9rem; }
+        .form-control:focus, .form-select:focus { border-color:var(--primary); box-shadow:0 0 0 3px rgba(37,99,235,.1); }
+        .btn-primary { background:var(--primary); border-color:var(--primary); }
+        .btn-primary:hover { background:var(--primary-dark); border-color:var(--primary-dark); }
+        .page-title { font-size:1.55rem; font-weight:700; color:var(--dark); margin-bottom:.2rem; }
+        .page-subtitle { color:#64748b; font-size:.88rem; margin-bottom:1.5rem; }
+        .table th { font-size:.76rem; font-weight:700; text-transform:uppercase; letter-spacing:.5px; color:#64748b; background:#f8fafc; border:none; padding:.8rem 1rem; }
+        .table td { vertical-align:middle; font-size:.875rem; padding:.75rem 1rem; }
+        .table { border-radius:12px; overflow:hidden; }
+        /* Chatbot */
+        #chatbot-btn { position:fixed; bottom:28px; right:28px; width:58px; height:58px; border-radius:50%; background:linear-gradient(135deg,var(--primary),var(--secondary)); color:#fff; border:none; box-shadow:0 4px 20px rgba(37,99,235,.4); z-index:9999; font-size:1.3rem; display:flex; align-items:center; justify-content:center; cursor:pointer; transition:.2s; }
+        #chatbot-btn:hover { transform:scale(1.08); }
+        #chatbot-window { position:fixed; bottom:100px; right:28px; width:380px; height:520px; background:#fff; border-radius:20px; box-shadow:0 20px 60px rgba(0,0,0,.18); z-index:9998; display:none; flex-direction:column; overflow:hidden; }
+        #chatbot-header { background:linear-gradient(135deg,var(--primary),var(--secondary)); color:#fff; padding:.9rem 1.1rem; display:flex; align-items:center; gap:.7rem; }
+        #chatbot-messages { flex:1; overflow-y:auto; padding:1rem; display:flex; flex-direction:column; gap:.65rem; }
+        .msg-bot, .msg-user { max-width:90%; padding:.65rem 1rem; border-radius:16px; font-size:.84rem; line-height:1.55; }
+        .msg-bot { background:#f1f5f9; color:var(--dark); align-self:flex-start; border-radius:4px 16px 16px 16px; }
+        .msg-user { background:linear-gradient(135deg,var(--primary),var(--secondary)); color:#fff; align-self:flex-end; border-radius:16px 4px 16px 16px; }
+        #chatbot-input-area { padding:.7rem; border-top:1px solid #f1f5f9; display:flex; gap:.5rem; }
+        .quick-replies { display:flex; flex-wrap:wrap; gap:.35rem; padding:.3rem 1rem .6rem; }
+        .quick-reply { background:#eff6ff; color:var(--primary); border:1px solid #bfdbfe; border-radius:20px; padding:4px 12px; font-size:.78rem; cursor:pointer; transition:.15s; }
+        .quick-reply:hover { background:var(--primary); color:#fff; }
+        .cibil-badge { display:inline-block; padding:3px 10px; border-radius:10px; font-size:.78rem; font-weight:600; }
+        @media(max-width:768px) { .sidebar { transform:translateX(-100%); } .main-content { margin-left:0; } }
+    </style>
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+<!-- Top Nav -->
+<div class="topnav">
+    <a href="/" class="brand">
+        <i class="fas fa-landmark" style="color:var(--primary)"></i>
+        LoanSense AI
+    </a>
+    {% if current_user.is_authenticated %}
+    <div class="topnav-right">
+        <a href="{% if current_user.is_admin %}/admin/profile{% else %}/profile{% endif %}" class="user-pill">
+            <div class="user-avatar">{{ current_user.name[0].upper() }}</div>
+            <div>
+                <div style="font-size:.82rem; font-weight:600; line-height:1.2">{{ current_user.name }}</div>
+                <div style="font-size:.72rem; color:#64748b">{{ 'Admin' if current_user.is_admin else 'Applicant' }}</div>
+            </div>
+        </a>
+        <a href="/logout" class="btn btn-outline-secondary btn-sm px-3"><i class="fas fa-sign-out-alt me-1"></i>Logout</a>
+    </div>
+    {% endif %}
+</div>
+
+{% if current_user.is_authenticated %}
+<div class="sidebar">
+    <div class="sidebar-logo-area">
+        <div class="sidebar-user">
+            <div class="sidebar-avatar">{{ current_user.name[0].upper() }}</div>
+            <div>
+                <div class="sidebar-name">{{ current_user.name }}</div>
+                <div class="sidebar-role">{{ 'Administrator' if current_user.is_admin else 'Loan Applicant' }}</div>
+            </div>
+        </div>
+    </div>
+
+    {% if current_user.is_admin %}
+    <div class="sidebar-section">Main</div>
+    <a href="/admin/dashboard" class="nav-link {% if request.path == '/admin/dashboard' %}active{% endif %}">
+        <i class="fas fa-tachometer-alt"></i>Dashboard</a>
+    <a href="/admin/applications" class="nav-link {% if '/admin/applications' in request.path %}active{% endif %}">
+        <i class="fas fa-file-alt"></i>All Applications
+        <span class="badge bg-primary rounded-pill" id="pendingCount"></span>
+    </a>
+    <a href="/admin/users" class="nav-link {% if '/admin/users' in request.path %}active{% endif %}">
+        <i class="fas fa-users"></i>Manage Users</a>
+    <div class="sidebar-section">Reports</div>
+    <a href="/analytics" class="nav-link {% if request.path == '/analytics' %}active{% endif %}">
+        <i class="fas fa-chart-bar"></i>Analytics</a>
+    <div class="sidebar-section">Account</div>
+    <a href="/admin/profile" class="nav-link {% if '/admin/profile' in request.path %}active{% endif %}">
+        <i class="fas fa-user-cog"></i>My Profile</a>
+    {% else %}
+    <div class="sidebar-section">Menu</div>
+    <a href="/dashboard" class="nav-link {% if request.path == '/dashboard' %}active{% endif %}">
+        <i class="fas fa-home"></i>Dashboard</a>
+    <a href="/apply" class="nav-link {% if request.path == '/apply' %}active{% endif %}">
+        <i class="fas fa-plus-circle"></i>Apply for Loan</a>
+    <a href="/applications" class="nav-link {% if request.path == '/applications' %}active{% endif %}">
+        <i class="fas fa-list-alt"></i>My Applications</a>
+    <div class="sidebar-section">Account</div>
+    <a href="/profile" class="nav-link {% if request.path == '/profile' %}active{% endif %}">
+        <i class="fas fa-user-cog"></i>My Profile</a>
+    {% endif %}
+
+    <div style="margin:1.5rem 1rem .5rem; padding:1rem; background:rgba(255,255,255,.04); border-radius:12px; border:1px solid rgba(255,255,255,.07)">
+        <div style="color:#64748b; font-size:.72rem; font-weight:700; text-transform:uppercase; letter-spacing:1px; margin-bottom:.5rem">AI Model</div>
+        <div style="color:#94a3b8; font-size:.8rem"><i class="fas fa-brain me-1" style="color:#7c3aed"></i>Random Forest</div>
+        <div style="color:#64748b; font-size:.75rem; margin-top:.25rem"><i class="fas fa-check-circle me-1 text-success"></i>Active & Ready</div>
+    </div>
+</div>
+{% endif %}
+
+<div class="{% if current_user.is_authenticated %}main-content{% else %}container-fluid{% endif %}">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    <div class="{% if not current_user.is_authenticated %}container mt-3{% else %}mb-3{% endif %}">
+        {% for cat, msg in messages %}
+        <div class="alert alert-{{ cat }} alert-dismissible fade show py-2" role="alert">
+            <i class="fas fa-{% if cat == 'success' %}check-circle{% elif cat == 'danger' %}exclamation-circle{% else %}info-circle{% endif %} me-2"></i>{{ msg }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    {% endwith %}
+    {% block content %}{% endblock %}
+</div>
+
+{% if current_user.is_authenticated and not current_user.is_admin %}
+<button id="chatbot-btn" onclick="toggleChat()" title="Chat with LoanBot">
+    <i class="fas fa-comment-dots" id="chat-icon"></i>
+</button>
+<div id="chatbot-window">
+    <div id="chatbot-header">
+        <div style="width:38px;height:38px;background:rgba(255,255,255,.2);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+            <i class="fas fa-robot" style="font-size:1.1rem"></i></div>
+        <div>
+            <div style="font-weight:700;font-size:.95rem">LoanBot</div>
+            <div style="font-size:.72rem;opacity:.8"><span style="display:inline-block;width:7px;height:7px;background:#4ade80;border-radius:50%;margin-right:4px"></span>Online — AI Assistant</div>
+        </div>
+        <button onclick="toggleChat()" style="background:none;border:none;color:#fff;margin-left:auto;font-size:1.1rem;padding:.2rem .4rem;border-radius:6px;opacity:.8" title="Close">✕</button>
+    </div>
+    <div id="chatbot-messages">
+        <div class="msg-bot">👋 Hi <strong>{{ current_user.name.split()[0] }}</strong>! I'm <strong>LoanBot</strong>.<br>I can help with loan process, documents, CIBIL score, and more. Ask me anything!</div>
+    </div>
+    <div class="quick-replies">
+        <span class="quick-reply" onclick="sendQuick('How to apply for a loan?')">How to apply?</span>
+        <span class="quick-reply" onclick="sendQuick('What documents are required?')">Documents needed?</span>
+        <span class="quick-reply" onclick="sendQuick('What is CIBIL score?')">CIBIL score?</span>
+        <span class="quick-reply" onclick="sendQuick('What types of loans are available?')">Loan types?</span>
+        <span class="quick-reply" onclick="sendQuick('How to improve loan approval chances?')">Improve chances?</span>
+    </div>
+    <div id="chatbot-input-area">
+        <input type="text" id="chatbot-input" class="form-control form-control-sm" placeholder="Ask me anything about loans..." onkeypress="if(event.key==='Enter')sendMessage()">
+        <button class="btn btn-primary btn-sm px-3" onclick="sendMessage()"><i class="fas fa-paper-plane"></i></button>
+    </div>
+</div>
+{% endif %}
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+function toggleChat() {
+    const w = document.getElementById('chatbot-window');
+    const open = w.style.display === 'flex';
+    w.style.display = open ? 'none' : 'flex';
+    document.getElementById('chat-icon').className = open ? 'fas fa-comment-dots' : 'fas fa-times';
+}
+function addMessage(html, who) {
+    const msgs = document.getElementById('chatbot-messages');
+    const d = document.createElement('div');
+    d.className = who === 'bot' ? 'msg-bot' : 'msg-user';
+    d.innerHTML = html;
+    msgs.appendChild(d);
+    msgs.scrollTop = msgs.scrollHeight;
+}
+function addTyping() {
+    const msgs = document.getElementById('chatbot-messages');
+    const d = document.createElement('div');
+    d.className = 'msg-bot'; d.id = 'typing';
+    d.innerHTML = '<i class="fas fa-circle" style="font-size:.4rem;animation:pulse 1s infinite"></i> <i class="fas fa-circle" style="font-size:.4rem;animation:pulse 1s .2s infinite"></i> <i class="fas fa-circle" style="font-size:.4rem;animation:pulse 1s .4s infinite"></i>';
+    msgs.appendChild(d); msgs.scrollTop = msgs.scrollHeight;
+}
+function sendMessage() {
+    const inp = document.getElementById('chatbot-input');
+    const msg = inp.value.trim();
+    if (!msg) return;
+    addMessage(msg, 'user');
+    inp.value = '';
+    addTyping();
+    setTimeout(() => {
+        fetch('/chat', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({message:msg}) })
+            .then(r => r.json()).then(d => {
+                const t = document.getElementById('typing');
+                if (t) t.remove();
+                addMessage(d.response, 'bot');
+            });
+    }, 500);
+}
+function sendQuick(msg) {
+    addMessage(msg, 'user');
+    addTyping();
+    setTimeout(() => {
+        fetch('/chat', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({message:msg}) })
+            .then(r => r.json()).then(d => {
+                const t = document.getElementById('typing');
+                if (t) t.remove();
+                addMessage(d.response, 'bot');
+            });
+    }, 400);
+}
+</script>
+{% block extra_js %}{% endblock %}
+</body>
+</html>

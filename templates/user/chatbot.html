@@ -1,0 +1,269 @@
+{% extends "base.html" %}
+{% block title %}AI Assistant{% endblock %}
+{% block page_title %}AI Loan Assistant{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="page-title">AI Loan Assistant 🤖</div>
+    <div class="page-subtitle">Ask anything about your loan application, eligibility, or the approval process.</div>
+</div>
+
+<div style="display:grid; grid-template-columns:1fr 280px; gap:20px; height:calc(100vh - 200px);">
+    <!-- Chat Window -->
+    <div class="card" style="display:flex; flex-direction:column; padding:0; overflow:hidden;">
+        <!-- Chat Header -->
+        <div style="padding:16px 20px; border-bottom:1px solid var(--border); display:flex; align-items:center; gap:12px;">
+            <div style="width:42px; height:42px; background:linear-gradient(135deg,#6366f1,#8b5cf6); border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:20px;">🤖</div>
+            <div>
+                <div style="font-weight:700; font-size:14px;">LoanSense AI Assistant</div>
+                <div style="display:flex; align-items:center; gap:6px; font-size:12px; color:var(--success-light);">
+                    <div style="width:6px; height:6px; background:var(--success); border-radius:50%; animation:pulse 2s infinite;"></div>
+                    Online · Ready to help
+                </div>
+            </div>
+        </div>
+
+        <!-- Messages -->
+        <div id="chatMessages" style="flex:1; overflow-y:auto; padding:20px; display:flex; flex-direction:column; gap:16px;">
+            <!-- Welcome message -->
+            <div class="msg-bot">
+                <div class="msg-avatar">🤖</div>
+                <div class="msg-bubble bot-bubble">
+                    <div class="msg-text">Hello! 👋 Welcome to <strong>LoanSense AI Assistant</strong>. I'm here to help you with your loan application journey.</div>
+                    <div class="quick-replies" id="initialReplies">
+                        <button class="qr-btn" onclick="sendMessage('How to apply?')">How to apply?</button>
+                        <button class="qr-btn" onclick="sendMessage('What documents needed?')">Documents needed?</button>
+                        <button class="qr-btn" onclick="sendMessage('What is credit history?')">Credit history?</button>
+                        <button class="qr-btn" onclick="sendMessage('What is risk level?')">Risk levels?</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Input Area -->
+        <div style="padding:16px 20px; border-top:1px solid var(--border); display:flex; gap:10px;">
+            <input type="text" id="chatInput" placeholder="Ask me anything about loans..."
+                   style="flex:1;" onkeydown="if(event.key==='Enter') sendMessage()">
+            <button onclick="sendMessage()" class="btn btn-primary" style="padding:10px 18px;">
+                <i class="fas fa-paper-plane"></i> Send
+            </button>
+        </div>
+    </div>
+
+    <!-- Sidebar Topics -->
+    <div style="display:flex; flex-direction:column; gap:16px;">
+        <div class="card">
+            <div class="card-title" style="margin-bottom:14px;"><i class="fas fa-lightbulb" style="color:#fbbf24;margin-right:8px;"></i>Popular Topics</div>
+            <div style="display:flex; flex-direction:column; gap:8px;">
+                {% for icon, color, topic in [
+                    ('file-alt', '#818cf8', 'Loan application process'),
+                    ('file-invoice', '#34d399', 'Required documents'),
+                    ('star', '#fbbf24', 'Credit history (CIBIL)'),
+                    ('check-circle', '#10b981', 'Approval criteria'),
+                    ('times-circle', '#f87171', 'Rejection reasons'),
+                    ('shield-alt', '#f59e0b', 'Risk level meaning'),
+                    ('robot', '#a78bfa', 'How ML prediction works'),
+                    ('chart-bar', '#60a5fa', 'Loan eligibility'),
+                    ('calculator', '#34d399', 'EMI calculation'),
+                    ('phone', '#818cf8', 'Contact support')
+                ] %}
+                <button onclick="sendMessage('{{ topic }}')"
+                        style="text-align:left; padding:9px 12px; background:var(--bg-card2); border:1px solid var(--border); border-radius:8px; color:var(--text-secondary); font-size:12px; cursor:pointer; font-family:'DM Sans',sans-serif; transition:all 0.2s; display:flex; align-items:center; gap:8px;"
+                        onmouseover="this.style.borderColor='{{ color }}'; this.style.color='{{ color }}'"
+                        onmouseout="this.style.borderColor='var(--border)'; this.style.color='var(--text-secondary)'">
+                    <i class="fas fa-{{ icon }}" style="color:{{ color }}; width:14px;"></i>
+                    {{ topic }}
+                </button>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="card" style="background:rgba(99,102,241,0.05); border-color:rgba(99,102,241,0.2);">
+            <div style="font-size:12px; color:var(--text-muted);">
+                <i class="fas fa-info-circle" style="color:var(--accent-light);"></i>
+                This is a <strong>rule-based AI assistant</strong> with predefined answers for common loan queries.
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_styles %}
+<style>
+.msg-bot, .msg-user { display: flex; align-items: flex-start; gap: 10px; }
+.msg-user { flex-direction: row-reverse; }
+.msg-avatar {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px; flex-shrink: 0;
+    background: var(--bg-card2);
+    border: 1px solid var(--border);
+}
+.user-avatar-c {
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    color: white;
+    font-size: 14px;
+    font-weight: 700;
+}
+.msg-bubble {
+    max-width: 75%;
+    padding: 12px 16px;
+    border-radius: 14px;
+    font-size: 13px;
+    line-height: 1.6;
+}
+.bot-bubble {
+    background: var(--bg-card2);
+    border: 1px solid var(--border);
+    border-top-left-radius: 4px;
+    color: var(--text-secondary);
+}
+.user-bubble {
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    color: white;
+    border-top-right-radius: 4px;
+}
+.quick-replies {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 10px;
+}
+.qr-btn {
+    padding: 5px 12px;
+    background: rgba(99,102,241,0.1);
+    border: 1px solid rgba(99,102,241,0.3);
+    border-radius: 20px;
+    font-size: 11px;
+    color: #818cf8;
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    transition: all 0.2s;
+}
+.qr-btn:hover {
+    background: rgba(99,102,241,0.2);
+    border-color: #818cf8;
+}
+.msg-text strong { color: var(--text-primary); }
+.typing-indicator {
+    display: flex; align-items: center; gap: 4px;
+    padding: 12px 16px;
+    background: var(--bg-card2); border: 1px solid var(--border);
+    border-radius: 14px; border-top-left-radius: 4px;
+}
+.typing-dot {
+    width: 7px; height: 7px; border-radius: 50%;
+    background: var(--text-muted);
+    animation: typing 1.2s infinite;
+}
+.typing-dot:nth-child(2) { animation-delay: 0.2s; }
+.typing-dot:nth-child(3) { animation-delay: 0.4s; }
+@keyframes typing {
+    0%, 100% { opacity: 0.3; transform: translateY(0); }
+    50% { opacity: 1; transform: translateY(-4px); }
+}
+</style>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const userName = '{{ session.get("user_name", "U")[0].upper() }}';
+
+function sendMessage(text) {
+    const input = document.getElementById('chatInput');
+    const message = text || input.value.trim();
+    if (!message) return;
+    
+    input.value = '';
+    appendMessage(message, 'user');
+    showTyping();
+    
+    fetch('/api/chatbot', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: message })
+    })
+    .then(res => res.json())
+    .then(data => {
+        hideTyping();
+        appendBotMessage(data.response, data.quick_replies || []);
+    })
+    .catch(() => {
+        hideTyping();
+        appendBotMessage("Sorry, I'm having trouble responding right now. Please try again!", []);
+    });
+}
+
+function appendMessage(text, role) {
+    const container = document.getElementById('chatMessages');
+    const div = document.createElement('div');
+    div.className = role === 'user' ? 'msg-user' : 'msg-bot';
+    
+    if (role === 'user') {
+        div.innerHTML = `
+            <div class="msg-bubble user-bubble">${escapeHtml(text)}</div>
+            <div class="msg-avatar user-avatar-c">${userName}</div>
+        `;
+    }
+    
+    container.appendChild(div);
+    container.scrollTop = container.scrollHeight;
+}
+
+function appendBotMessage(text, quickReplies) {
+    const container = document.getElementById('chatMessages');
+    const div = document.createElement('div');
+    div.className = 'msg-bot';
+    
+    const formattedText = text
+        .replace(/\n/g, '<br>')
+        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+    
+    let qrHtml = '';
+    if (quickReplies.length > 0) {
+        qrHtml = '<div class="quick-replies">' + 
+            quickReplies.map(qr => `<button class="qr-btn" onclick="sendMessage('${qr}')">${qr}</button>`).join('') +
+            '</div>';
+    }
+    
+    div.innerHTML = `
+        <div class="msg-avatar">🤖</div>
+        <div class="msg-bubble bot-bubble">
+            <div class="msg-text">${formattedText}</div>
+            ${qrHtml}
+        </div>
+    `;
+    container.appendChild(div);
+    container.scrollTop = container.scrollHeight;
+}
+
+function showTyping() {
+    const container = document.getElementById('chatMessages');
+    const div = document.createElement('div');
+    div.className = 'msg-bot'; div.id = 'typingIndicator';
+    div.innerHTML = `
+        <div class="msg-avatar">🤖</div>
+        <div class="typing-indicator">
+            <div class="typing-dot"></div>
+            <div class="typing-dot"></div>
+            <div class="typing-dot"></div>
+        </div>
+    `;
+    container.appendChild(div);
+    container.scrollTop = container.scrollHeight;
+}
+
+function hideTyping() {
+    const el = document.getElementById('typingIndicator');
+    if (el) el.remove();
+}
+
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+</script>
+{% endblock %}

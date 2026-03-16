@@ -1,0 +1,10 @@
+flask
+flask-sqlalchemy
+flask-login
+werkzeug
+scikit-learn
+pandas
+numpy
+plotly
+matplotlib
+seaborn

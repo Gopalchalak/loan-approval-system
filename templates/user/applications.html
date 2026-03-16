@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+{% block title %}My Applications - LoanSense AI{% endblock %}
+{% block content %}
+<div class="page-title">My Applications</div>
+<div class="page-subtitle">Track all your loan application history</div>
+<div class="card">
+  <div class="card-header d-flex justify-content-between align-items-center">
+    <span><i class="fas fa-list me-2 text-primary"></i>All Applications ({{ applications|length }})</span>
+    <a href="/apply" class="btn btn-primary btn-sm"><i class="fas fa-plus me-1"></i>New Application</a>
+  </div>
+  <div class="card-body p-0">
+    {% if applications %}
+    <div class="table-responsive">
+      <table class="table mb-0">
+        <thead><tr><th>App ID</th><th>Loan Amount</th><th>Income</th><th>Property</th><th>Credit</th><th>ML Prediction</th><th>Risk</th><th>Admin Status</th><th>Date</th><th>Action</th></tr></thead>
+        <tbody>
+          {% for app in applications %}
+          <tr>
+            <td><strong>#{{ app.application_id }}</strong></td>
+            <td>₹{{ app.loan_amount }}K</td>
+            <td>₹{{ "%.0f"|format(app.applicant_income) }}</td>
+            <td>{{ app.property_area }}</td>
+            <td><span class="badge rounded-pill {{ 'bg-success' if app.credit_history == 1 else 'bg-danger' }}">{{ 'Good' if app.credit_history == 1 else 'Poor' }}</span></td>
+            <td>{% if app.predictions %}
+              <span class="badge-{{ 'approved' if app.predictions[0].predicted_result == 'Approved' else 'rejected' }}">{{ app.predictions[0].predicted_result }}</span>
+              {% else %}<span class="text-muted small">—</span>{% endif %}</td>
+            <td>{% if app.predictions %}
+              <span class="badge rounded-pill px-2 small {{ 'risk-low' if app.predictions[0].risk_level == 'Low Risk' else 'risk-medium' if app.predictions[0].risk_level == 'Medium Risk' else 'risk-high' }}">{{ app.predictions[0].risk_level }}</span>
+              {% else %}—{% endif %}</td>
+            <td><span class="badge-{{ app.status.lower() }}">{{ app.status }}</span></td>
+            <td class="text-muted small">{{ app.submitted_at.strftime('%d %b %Y') }}</td>
+            <td><a href="/result/{{ app.application_id }}" class="btn btn-sm btn-outline-primary">View</a></td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="text-center py-5">
+      <i class="fas fa-file-alt text-muted" style="font-size:3rem"></i>
+      <p class="text-muted mt-3">No applications yet.</p>
+      <a href="/apply" class="btn btn-primary">Apply for Loan</a>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

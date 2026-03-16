@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+{% block title %}Applications - Admin{% endblock %}
+{% block content %}
+<div class="page-title">Loan Applications</div>
+<div class="page-subtitle">Review and manage all loan applications</div>
+<div class="card mb-3">
+  <div class="card-body py-2">
+    <div class="d-flex gap-2 flex-wrap">
+      {% for s in ['all', 'Pending', 'Approved', 'Rejected'] %}
+      <a href="?status={{ s }}" class="btn btn-sm {{ 'btn-primary' if status_filter == s else 'btn-outline-secondary' }}">
+        {{ s.capitalize() }}</a>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+<div class="card">
+  <div class="card-header"><i class="fas fa-file-alt me-2 text-primary"></i>Applications ({{ applications|length }})</div>
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table mb-0">
+        <thead><tr><th>ID</th><th>Applicant</th><th>Loan</th><th>Income</th><th>Credit</th><th>Property</th><th>ML Result</th><th>Probability</th><th>Risk</th><th>Status</th><th>Date</th><th>Action</th></tr></thead>
+        <tbody>
+          {% for app in applications %}
+          <tr>
+            <td><strong>#{{ app.application_id }}</strong></td>
+            <td>{{ app.applicant.name }}<br><small class="text-muted">{{ app.applicant.email }}</small></td>
+            <td>₹{{ app.loan_amount }}K</td>
+            <td>₹{{ "%.0f"|format(app.applicant_income) }}</td>
+            <td><span class="badge rounded-pill {{ 'bg-success' if app.credit_history == 1 else 'bg-danger' }}">{{ 'Good' if app.credit_history == 1 else 'Poor' }}</span></td>
+            <td>{{ app.property_area }}</td>
+            <td>{% if app.predictions %}<span class="badge-{{ 'approved' if app.predictions[0].predicted_result == 'Approved' else 'rejected' }}">{{ app.predictions[0].predicted_result }}</span>{% else %}—{% endif %}</td>
+            <td>{% if app.predictions %}<strong>{{ app.predictions[0].probability }}%</strong>{% else %}—{% endif %}</td>
+            <td>{% if app.predictions %}<span class="badge rounded-pill px-2 small {{ 'risk-low' if app.predictions[0].risk_level == 'Low Risk' else 'risk-medium' if app.predictions[0].risk_level == 'Medium Risk' else 'risk-high' }}">{{ app.predictions[0].risk_level }}</span>{% endif %}</td>
+            <td><span class="badge-{{ app.status.lower() }}">{{ app.status }}</span></td>
+            <td class="text-muted small">{{ app.submitted_at.strftime('%d %b') }}</td>
+            <td><a href="/admin/application/{{ app.application_id }}" class="btn btn-sm btn-outline-primary">Review</a></td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,283 @@
+{% extends 'base.html' %}
+{% block title %}Apply for Loan - LoanSense AI{% endblock %}
+{% block extra_css %}
+<style>
+.loan-type-card { border:2px solid #e2e8f0; border-radius:14px; padding:1rem; cursor:pointer; transition:.2s; text-align:center; }
+.loan-type-card:hover { border-color:var(--primary); background:#eff6ff; }
+.loan-type-card.selected { border-color:var(--primary); background:#eff6ff; }
+.loan-type-card input { display:none; }
+.loan-type-icon { font-size:1.8rem; margin-bottom:.4rem; display:block; }
+.loan-type-label { font-size:.8rem; font-weight:600; color:var(--dark); }
+.section-header { background:linear-gradient(135deg,#eff6ff,#f5f3ff); border-radius:12px; padding:.75rem 1rem; margin-bottom:1rem; border-left:3px solid var(--primary); }
+.section-header h6 { color:var(--primary); margin:0; font-weight:700; font-size:.9rem; }
+.cibil-indicator { height:12px; border-radius:6px; background:linear-gradient(to right,#ef4444,#f59e0b,#10b981); position:relative; margin-top:.5rem; }
+.cibil-marker { position:absolute; top:-4px; width:20px; height:20px; border-radius:50%; background:var(--primary); border:3px solid #fff; box-shadow:0 2px 8px rgba(0,0,0,.2); transform:translateX(-50%); transition:.3s; }
+</style>
+{% endblock %}
+{% block content %}
+<div class="page-title"><i class="fas fa-file-alt me-2" style="color:var(--primary)"></i>Apply for Loan</div>
+<div class="page-subtitle">Complete the form below for an instant AI-powered loan prediction</div>
+
+<div class="row g-4">
+<div class="col-lg-8">
+<div class="card">
+<div class="card-body p-4">
+<form method="POST" id="loanForm">
+
+  <!-- LOAN TYPE -->
+  <div class="section-header mb-3"><h6><i class="fas fa-tags me-2"></i>Step 1: Select Loan Type</h6></div>
+  <div class="row g-2 mb-4">
+    {% for icon, name, desc in [("🏠","Home Loan","Buy/build home"),("🚗","Car Loan","New/used vehicle"),("🎓","Education Loan","Higher studies"),("💼","Personal Loan","Personal needs"),("🏢","Business Loan","Business growth"),("🏥","Medical Loan","Medical expenses")] %}
+    <div class="col-6 col-md-4 col-lg-4">
+      <label class="loan-type-card d-block w-100" id="lt_{{ loop.index }}">
+        <input type="radio" name="loan_type" value="{{ name }}" {% if loop.first %}checked{% endif %} onchange="selectLoanType(this)">
+        <span class="loan-type-icon">{{ icon }}</span>
+        <div class="loan-type-label">{{ name }}</div>
+        <div style="font-size:.7rem;color:#64748b">{{ desc }}</div>
+      </label>
+    </div>
+    {% endfor %}
+  </div>
+
+  <!-- PERSONAL INFO -->
+  <div class="section-header mb-3"><h6><i class="fas fa-user me-2"></i>Step 2: Personal Information</h6></div>
+  <div class="row g-3 mb-4">
+    <div class="col-md-4">
+      <label class="form-label fw-semibold small">Gender *</label>
+      <select name="gender" class="form-select" required>
+        <option value="Male">Male</option>
+        <option value="Female">Female</option>
+      </select>
+    </div>
+    <div class="col-md-4">
+      <label class="form-label fw-semibold small">Marital Status *</label>
+      <select name="married" class="form-select" required>
+        <option value="Yes">Married</option>
+        <option value="No">Unmarried</option>
+      </select>
+    </div>
+    <div class="col-md-4">
+      <label class="form-label fw-semibold small">Number of Dependents *</label>
+      <select name="dependents" class="form-select" required>
+        <option value="0">0 — No dependents</option>
+        <option value="1">1 — One dependent</option>
+        <option value="2">2 — Two dependents</option>
+        <option value="3+">3+ — Three or more</option>
+      </select>
+    </div>
+    <div class="col-md-6">
+      <label class="form-label fw-semibold small">Education Level *</label>
+      <select name="education" class="form-select" required>
+        <option value="Graduate">Graduate (Bachelor's or higher)</option>
+        <option value="Not Graduate">Not Graduate (Below Bachelor's)</option>
+      </select>
+    </div>
+    <div class="col-md-6">
+      <label class="form-label fw-semibold small">Employment Type *</label>
+      <select name="self_employed" class="form-select" required>
+        <option value="No">Salaried (Government/Private)</option>
+        <option value="Yes">Self-Employed / Business Owner</option>
+      </select>
+    </div>
+    <div class="col-md-6">
+      <label class="form-label fw-semibold small">Property Area *</label>
+      <select name="property_area" class="form-select" required>
+        <option value="Urban">Urban (Metro City)</option>
+        <option value="Semiurban">Semiurban (Tier 2 City)</option>
+        <option value="Rural">Rural (Village/Town)</option>
+      </select>
+    </div>
+    <div class="col-md-6">
+      <label class="form-label fw-semibold small">Existing Active Loans</label>
+      <select name="existing_loans" class="form-select">
+        <option value="0">None</option>
+        <option value="1">1 loan</option>
+        <option value="2">2 loans</option>
+        <option value="3">3+ loans</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- INCOME -->
+  <div class="section-header mb-3"><h6><i class="fas fa-rupee-sign me-2"></i>Step 3: Income Details</h6></div>
+  <div class="row g-3 mb-4">
+    <div class="col-md-6">
+      <label class="form-label fw-semibold small">Monthly Applicant Income (₹) *</label>
+      <div class="input-group">
+        <span class="input-group-text">₹</span>
+        <input type="number" name="applicant_income" class="form-control" placeholder="e.g. 50000" min="1000" required oninput="calcEMI()">
+        <span class="input-group-text">/mo</span>
+      </div>
+    </div>
+    <div class="col-md-6">
+      <label class="form-label fw-semibold small">Co-Applicant Monthly Income (₹)</label>
+      <div class="input-group">
+        <span class="input-group-text">₹</span>
+        <input type="number" name="coapplicant_income" class="form-control" placeholder="e.g. 20000 or 0" min="0" value="0">
+        <span class="input-group-text">/mo</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- LOAN DETAILS -->
+  <div class="section-header mb-3"><h6><i class="fas fa-money-check-alt me-2"></i>Step 4: Loan Requirements</h6></div>
+  <div class="row g-3 mb-4">
+    <div class="col-md-5">
+      <label class="form-label fw-semibold small">Loan Amount (₹ in Thousands) *</label>
+      <div class="input-group">
+        <span class="input-group-text">₹</span>
+        <input type="number" name="loan_amount" id="loanAmountInput" class="form-control" placeholder="e.g. 500 = ₹5 Lakhs" min="10" max="1000" required oninput="calcEMI()">
+        <span class="input-group-text">K</span>
+      </div>
+      <div class="form-text">Max: ₹1000K = ₹10,00,000 (10 Lakhs)</div>
+    </div>
+    <div class="col-md-4">
+      <label class="form-label fw-semibold small">Loan Tenure *</label>
+      <select name="loan_tenure" id="tenureSelect" class="form-select" required onchange="calcEMI()">
+        <option value="12">12 months (1 year)</option>
+        <option value="24">24 months (2 years)</option>
+        <option value="36">36 months (3 years)</option>
+        <option value="60">60 months (5 years)</option>
+        <option value="84">84 months (7 years)</option>
+        <option value="120">120 months (10 years)</option>
+        <option value="180">180 months (15 years)</option>
+        <option value="240">240 months (20 years)</option>
+        <option value="360" selected>360 months (30 years)</option>
+      </select>
+    </div>
+    <div class="col-md-3 d-flex align-items-end">
+      <div id="emiBox" class="p-2 rounded w-100" style="background:#f0fdf4;border:1.5px solid #bbf7d0;text-align:center;display:none">
+        <div style="font-size:.72rem;color:#166534;font-weight:600">Est. Monthly EMI</div>
+        <div style="font-size:1.1rem;font-weight:800;color:#059669" id="emiVal">—</div>
+      </div>
+    </div>
+    <div class="col-12">
+      <label class="form-label fw-semibold small">Purpose / Description</label>
+      <textarea name="purpose" class="form-control" rows="2" placeholder="Brief description of why you need this loan..."></textarea>
+    </div>
+  </div>
+
+  <!-- CIBIL -->
+  <div class="section-header mb-3"><h6><i class="fas fa-chart-line me-2"></i>Step 5: Credit Information</h6></div>
+  <div class="row g-3 mb-4">
+    <div class="col-md-6">
+      <label class="form-label fw-semibold small">CIBIL Credit Score (300-900) *</label>
+      <input type="range" name="cibil_score" id="cibilRange" min="300" max="900" value="700" step="10" class="form-range" oninput="updateCIBIL(this.value)">
+      <div class="cibil-indicator">
+        <div class="cibil-marker" id="cibilMarker" style="left:66.7%"></div>
+      </div>
+      <div class="d-flex justify-content-between mt-2">
+        <span style="font-size:.7rem;color:#ef4444">300 (Poor)</span>
+        <span style="font-size:.7rem;color:#f59e0b">600</span>
+        <span style="font-size:.7rem;color:#10b981">900 (Excellent)</span>
+      </div>
+      <div class="mt-2 text-center">
+        <span class="cibil-badge" id="cibilBadge" style="background:#dcfce7;color:#166534">Score: 700 — Good</span>
+      </div>
+    </div>
+    <div class="col-md-6">
+      <label class="form-label fw-semibold small">Credit History Status</label>
+      <div id="cibilExplain" class="p-3 rounded" style="background:#f8fafc;border:1.5px solid #e2e8f0;font-size:.82rem;color:#475569;min-height:80px">
+        Score 700 — Good credit. Likely to get approval with standard terms.
+      </div>
+      <div class="mt-2">
+        <small class="text-muted"><i class="fas fa-info-circle me-1"></i>CIBIL auto-sets credit history (650+ = Good)</small>
+      </div>
+    </div>
+  </div>
+
+  <div class="d-flex gap-3 mt-2">
+    <button type="submit" class="btn btn-primary px-5 py-3 fw-semibold" style="border-radius:12px">
+      <i class="fas fa-brain me-2"></i>Submit & Get AI Prediction</button>
+    <a href="/dashboard" class="btn btn-outline-secondary px-4 py-3" style="border-radius:12px">
+      <i class="fas fa-times me-2"></i>Cancel</a>
+  </div>
+</form>
+</div>
+</div>
+</div>
+
+<!-- Right Panel -->
+<div class="col-lg-4">
+  <div class="card mb-3">
+    <div class="card-header"><i class="fas fa-info-circle me-2 text-info"></i>How AI Prediction Works</div>
+    <div class="card-body p-3">
+      {% for num, title, desc, color in [("1","Fill Details","Enter all loan & personal details","#eff6ff"),("2","AI Analysis","Random Forest model analyzes 12+ factors","#f0fdf4"),("3","Get Result","Instant approval probability + risk level","#faf5ff")] %}
+      <div class="d-flex gap-3 mb-3">
+        <div style="width:30px;height:30px;background:{{ color }};border-radius:8px;display:flex;align-items:center;justify-content:center;color:var(--primary);font-weight:700;font-size:.8rem;flex-shrink:0">{{ num }}</div>
+        <div><strong class="small">{{ title }}</strong><p class="text-muted small mb-0">{{ desc }}</p></div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  <div class="card mb-3">
+    <div class="card-header"><i class="fas fa-lightbulb me-2 text-warning"></i>Approval Tips</div>
+    <div class="card-body p-3">
+      <ul class="list-unstyled small mb-0">
+        {% for tip in ["Keep CIBIL score above 750","Loan ≤ 3x your monthly income","Add co-applicant income","Clear existing loans first","Semiurban area = better chances","Longer tenure = lower EMI"] %}
+        <li class="mb-2"><i class="fas fa-check-circle text-success me-2"></i>{{ tip }}</li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-header"><i class="fas fa-rupee-sign me-2 text-success"></i>Loan Limits by Type</div>
+    <div class="card-body p-3">
+      <table class="table table-sm mb-0" style="font-size:.8rem">
+        <thead><tr><th>Loan Type</th><th>Max Amount</th></tr></thead>
+        <tbody>
+          <tr><td>🏠 Home</td><td>₹10 Lakhs</td></tr>
+          <tr><td>🚗 Car</td><td>₹10 Lakhs</td></tr>
+          <tr><td>🎓 Education</td><td>₹10 Lakhs</td></tr>
+          <tr><td>💼 Personal</td><td>₹5 Lakhs</td></tr>
+          <tr><td>🏢 Business</td><td>₹10 Lakhs</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+</div>
+{% endblock %}
+{% block extra_js %}
+<script>
+// Loan type selection
+document.querySelectorAll('.loan-type-card').forEach(card => {
+  const inp = card.querySelector('input');
+  if (inp.checked) card.classList.add('selected');
+});
+function selectLoanType(inp) {
+  document.querySelectorAll('.loan-type-card').forEach(c => c.classList.remove('selected'));
+  inp.parentElement.classList.add('selected');
+}
+
+// CIBIL Score Slider
+function updateCIBIL(val) {
+  val = parseInt(val);
+  const pct = ((val - 300) / 600) * 100;
+  document.getElementById('cibilMarker').style.left = pct + '%';
+  let label, style, explain;
+  if (val >= 750) { label = `Score ${val} — Excellent ✅`; style = 'background:#dcfce7;color:#166534'; explain = `Score ${val} — Excellent credit! You have the highest chance of loan approval with the best interest rates.`; }
+  else if (val >= 700) { label = `Score ${val} — Good ✅`; style = 'background:#d1fae5;color:#065f46'; explain = `Score ${val} — Good credit. Likely to get approval with standard terms and competitive interest rates.`; }
+  else if (val >= 650) { label = `Score ${val} — Fair ⚠️`; style = 'background:#fef3c7;color:#92400e'; explain = `Score ${val} — Fair credit. Approval possible but may require additional conditions or co-applicant.`; }
+  else if (val >= 600) { label = `Score ${val} — Poor ⚠️`; style = 'background:#fde68a;color:#78350f'; explain = `Score ${val} — Poor credit. Low approval chance. Higher interest rates may apply if approved.`; }
+  else { label = `Score ${val} — Very Poor ❌`; style = 'background:#fee2e2;color:#991b1b'; explain = `Score ${val} — Very poor credit. Very unlikely to be approved. Focus on improving CIBIL before applying.`; }
+  document.getElementById('cibilBadge').textContent = label;
+  document.getElementById('cibilBadge').style.cssText = style + ';border-radius:12px;padding:4px 12px;font-size:.8rem;font-weight:600';
+  document.getElementById('cibilExplain').textContent = explain;
+}
+
+// EMI Calculator
+function calcEMI() {
+  const amt = parseFloat(document.getElementById('loanAmountInput').value) * 1000;
+  const months = parseInt(document.getElementById('tenureSelect').value);
+  if (!amt || !months) { document.getElementById('emiBox').style.display = 'none'; return; }
+  const r = 0.105 / 12; // 10.5% p.a.
+  const emi = amt * r * Math.pow(1+r, months) / (Math.pow(1+r, months) - 1);
+  document.getElementById('emiVal').textContent = '₹' + Math.round(emi).toLocaleString('en-IN');
+  document.getElementById('emiBox').style.display = 'block';
+}
+
+// Init
+updateCIBIL(700);
+</script>
+{% endblock %}

@@ -1,0 +1,102 @@
+{% extends 'base.html' %}
+{% block title %}Review Application - Admin{% endblock %}
+{% block content %}
+<div class="page-title">Application #{{ loan.application_id }}</div>
+<div class="page-subtitle">Submitted by {{ loan.applicant.name }} on {{ loan.submitted_at.strftime('%d %B %Y') }}</div>
+<div class="row g-4">
+  <div class="col-lg-7">
+    <div class="card mb-4">
+      <div class="card-header"><i class="fas fa-user me-2 text-primary"></i>Applicant Details</div>
+      <div class="card-body">
+        <div class="row g-3 small">
+          <div class="col-6"><span class="text-muted">Name:</span><br><strong>{{ loan.applicant.name }}</strong></div>
+          <div class="col-6"><span class="text-muted">Email:</span><br><strong>{{ loan.applicant.email }}</strong></div>
+          <div class="col-6"><span class="text-muted">Gender:</span><br><strong>{{ loan.gender }}</strong></div>
+          <div class="col-6"><span class="text-muted">Married:</span><br><strong>{{ loan.married }}</strong></div>
+          <div class="col-6"><span class="text-muted">Dependents:</span><br><strong>{{ loan.dependents }}</strong></div>
+          <div class="col-6"><span class="text-muted">Education:</span><br><strong>{{ loan.education }}</strong></div>
+          <div class="col-6"><span class="text-muted">Employment:</span><br><strong>{{ 'Self-Employed' if loan.employment_status == 'Yes' else 'Salaried' }}</strong></div>
+          <div class="col-6"><span class="text-muted">Property Area:</span><br><strong>{{ loan.property_area }}</strong></div>
+          <div class="col-6"><span class="text-muted">Applicant Income:</span><br><strong>₹{{ "%.0f"|format(loan.applicant_income) }}</strong></div>
+          <div class="col-6"><span class="text-muted">Co-applicant Income:</span><br><strong>₹{{ "%.0f"|format(loan.coapplicant_income) }}</strong></div>
+          <div class="col-6"><span class="text-muted">Loan Amount:</span><br><strong>₹{{ loan.loan_amount }}K</strong></div>
+          <div class="col-6"><span class="text-muted">Loan Tenure:</span><br><strong>{{ loan.loan_tenure }} months</strong></div>
+          <div class="col-12"><span class="text-muted">Credit History:</span>
+            <span class="badge rounded-pill ms-2 {{ 'bg-success' if loan.credit_history == 1 else 'bg-danger' }}">{{ 'Good (750+)' if loan.credit_history == 1 else 'Poor (below 750)' }}</span></div>
+        </div>
+      </div>
+    </div>
+    {% if loan.status == 'Pending' %}
+    <div class="card">
+      <div class="card-header"><i class="fas fa-gavel me-2 text-warning"></i>Make Decision</div>
+      <div class="card-body">
+        <form method="POST" action="/admin/decide/{{ loan.application_id }}">
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Decision *</label>
+            <div class="d-flex gap-3">
+              <div class="form-check">
+                <input class="form-check-input" type="radio" name="decision" value="Approved" id="approve" required>
+                <label class="form-check-label text-success fw-semibold" for="approve"><i class="fas fa-check-circle me-1"></i>Approve</label>
+              </div>
+              <div class="form-check">
+                <input class="form-check-input" type="radio" name="decision" value="Rejected" id="reject">
+                <label class="form-check-label text-danger fw-semibold" for="reject"><i class="fas fa-times-circle me-1"></i>Reject</label>
+              </div>
+            </div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Remarks</label>
+            <textarea name="remarks" class="form-control" rows="3" placeholder="Add your review remarks..."></textarea>
+          </div>
+          <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-primary px-4">Submit Decision</button>
+            <a href="/admin/applications" class="btn btn-outline-secondary">Cancel</a>
+          </div>
+        </form>
+      </div>
+    </div>
+    {% else %}
+    <div class="alert alert-{{ 'success' if loan.status == 'Approved' else 'danger' }}">
+      <i class="fas fa-{{ 'check' if loan.status == 'Approved' else 'times' }}-circle me-2"></i>
+      This application has been <strong>{{ loan.status }}</strong> by admin.
+    </div>
+    {% endif %}
+  </div>
+  <div class="col-lg-5">
+    {% if prediction %}
+    <div class="card mb-4 text-center">
+      <div class="card-header"><i class="fas fa-brain me-2 text-primary"></i>ML Prediction</div>
+      <div class="card-body py-4">
+        <div style="width:80px;height:80px;background:{{ '#dcfce7' if prediction.predicted_result == 'Approved' else '#fee2e2' }};border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;font-size:2rem">
+          {{ '✅' if prediction.predicted_result == 'Approved' else '❌' }}</div>
+        <h4 class="fw-bold" style="color:{{ '#10b981' if prediction.predicted_result == 'Approved' else '#ef4444' }}">{{ prediction.predicted_result }}</h4>
+        <div class="my-3">
+          <div class="d-flex justify-content-between small mb-1"><span>Approval Probability</span><strong>{{ prediction.probability }}%</strong></div>
+          <div class="progress" style="height:10px;border-radius:10px">
+            <div class="progress-bar {{ 'bg-success' if prediction.probability >= 75 else 'bg-warning' if prediction.probability >= 45 else 'bg-danger' }}"
+                 style="width:{{ prediction.probability }}%;border-radius:10px"></div>
+          </div>
+        </div>
+        <span class="badge px-3 py-2 {{ 'risk-low' if prediction.risk_level == 'Low Risk' else 'risk-medium' if prediction.risk_level == 'Medium Risk' else 'risk-high' }}" style="border-radius:20px">
+          {{ prediction.risk_level }}</span>
+        <p class="text-muted small mt-2">Model: {{ prediction.model_used or 'Random Forest' }}</p>
+      </div>
+    </div>
+    {% endif %}
+    {% if decisions %}
+    <div class="card">
+      <div class="card-header"><i class="fas fa-history me-2"></i>Decision History</div>
+      <div class="card-body">
+        {% for d in decisions %}
+        <div class="border-start border-3 {{ 'border-success' if d.admin_decision == 'Approved' else 'border-danger' }} ps-3 mb-3">
+          <div><strong>{{ d.admin_decision }}</strong> by {{ d.admin.name }}</div>
+          <div class="text-muted small">{{ d.decision_date.strftime('%d %b %Y %H:%M') }}</div>
+          {% if d.remarks %}<p class="small mb-0 mt-1">{{ d.remarks }}</p>{% endif %}
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

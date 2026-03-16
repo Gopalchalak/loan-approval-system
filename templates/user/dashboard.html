@@ -1,0 +1,105 @@
+{% extends 'base.html' %}
+{% block title %}Dashboard - LoanSense AI{% endblock %}
+{% block content %}
+<div class="page-title">My Dashboard</div>
+<div class="page-subtitle">Welcome back, {{ current_user.name }}! Here is your loan overview.</div>
+
+<div class="row g-4 mb-4">
+  <div class="col-sm-6 col-xl-3">
+    <div class="stat-card gradient-blue">
+      <div style="font-size:2rem;font-weight:800">{{ total }}</div>
+      <div style="opacity:.8;font-size:.9rem">Total Applications</div>
+      <i class="fas fa-file-alt" style="position:absolute;right:20px;top:20px;font-size:2rem;opacity:.3"></i>
+    </div>
+  </div>
+  <div class="col-sm-6 col-xl-3">
+    <div class="stat-card gradient-green">
+      <div style="font-size:2rem;font-weight:800">{{ approved }}</div>
+      <div style="opacity:.8;font-size:.9rem">Approved</div>
+      <i class="fas fa-check-circle" style="position:absolute;right:20px;top:20px;font-size:2rem;opacity:.3"></i>
+    </div>
+  </div>
+  <div class="col-sm-6 col-xl-3">
+    <div class="stat-card gradient-orange">
+      <div style="font-size:2rem;font-weight:800">{{ rejected }}</div>
+      <div style="opacity:.8;font-size:.9rem">Rejected</div>
+      <i class="fas fa-times-circle" style="position:absolute;right:20px;top:20px;font-size:2rem;opacity:.3"></i>
+    </div>
+  </div>
+  <div class="col-sm-6 col-xl-3">
+    <div class="stat-card gradient-purple">
+      <div style="font-size:2rem;font-weight:800">{{ pending }}</div>
+      <div style="opacity:.8;font-size:.9rem">Pending</div>
+      <i class="fas fa-clock" style="position:absolute;right:20px;top:20px;font-size:2rem;opacity:.3"></i>
+    </div>
+  </div>
+</div>
+
+<div class="row g-4">
+  <div class="col-lg-8">
+    <div class="card">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <span><i class="fas fa-list me-2 text-primary"></i>Recent Applications</span>
+        <a href="/apply" class="btn btn-primary btn-sm"><i class="fas fa-plus me-1"></i>New Application</a>
+      </div>
+      <div class="card-body p-0">
+        {% if applications %}
+        <div class="table-responsive">
+          <table class="table mb-0">
+            <thead><tr><th>ID</th><th>Loan Amount</th><th>Income</th><th>ML Prediction</th><th>Status</th><th>Date</th><th></th></tr></thead>
+            <tbody>
+              {% for app in applications[:8] %}
+              <tr>
+                <td><strong>#{{ app.application_id }}</strong></td>
+                <td>₹{{ "%.0f"|format(app.loan_amount) }}K</td>
+                <td>₹{{ "%.0f"|format(app.applicant_income) }}</td>
+                <td>
+                  {% if app.predictions %}
+                    {% set pred = app.predictions[0] %}
+                    <span class="badge rounded-pill {{ 'badge-approved' if pred.predicted_result == 'Approved' else 'badge-rejected' }}">
+                      {{ pred.predicted_result }} ({{ pred.probability }}%)</span>
+                  {% else %}<span class="text-muted small">—</span>{% endif %}
+                </td>
+                <td><span class="badge-{{ app.status.lower() }}">{{ app.status }}</span></td>
+                <td class="text-muted small">{{ app.submitted_at.strftime('%d %b %Y') }}</td>
+                <td><a href="/result/{{ app.application_id }}" class="btn btn-sm btn-outline-primary">View</a></td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        {% else %}
+        <div class="text-center py-5">
+          <i class="fas fa-file-alt text-muted" style="font-size:3rem"></i>
+          <p class="text-muted mt-3">No applications yet. Apply for your first loan!</p>
+          <a href="/apply" class="btn btn-primary"><i class="fas fa-plus me-2"></i>Apply Now</a>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-4">
+    <div class="card mb-4">
+      <div class="card-header"><i class="fas fa-user me-2 text-primary"></i>Profile</div>
+      <div class="card-body">
+        <div class="text-center mb-3">
+          <div style="width:64px;height:64px;background:linear-gradient(135deg,#2563eb,#7c3aed);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto;color:#fff;font-size:1.5rem;font-weight:700">
+            {{ current_user.name[0].upper() }}</div>
+        </div>
+        <p class="mb-1"><strong>{{ current_user.name }}</strong></p>
+        <p class="text-muted small mb-1"><i class="fas fa-envelope me-2"></i>{{ current_user.email }}</p>
+        {% if current_user.phone %}<p class="text-muted small mb-0"><i class="fas fa-phone me-2"></i>{{ current_user.phone }}</p>{% endif %}
+        <a href="/profile" class="btn btn-outline-primary btn-sm w-100 mt-3">Edit Profile</a>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-header"><i class="fas fa-bolt me-2 text-warning"></i>Quick Actions</div>
+      <div class="card-body d-grid gap-2">
+        <a href="/apply" class="btn btn-primary"><i class="fas fa-plus-circle me-2"></i>Apply for Loan</a>
+        <a href="/applications" class="btn btn-outline-secondary"><i class="fas fa-list me-2"></i>View All Applications</a>
+        <a href="/analytics" class="btn btn-outline-secondary"><i class="fas fa-chart-bar me-2"></i>Analytics</a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

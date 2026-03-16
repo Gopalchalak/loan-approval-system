@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+{% block title %}Login - LoanSense AI{% endblock %}
+{% block content %}
+<div class="d-flex align-items-center justify-content-center" style="min-height:calc(100vh - 80px)">
+  <div class="card shadow-lg" style="width:100%;max-width:440px;border-radius:20px;">
+    <div class="card-body p-5">
+      <div class="text-center mb-4">
+        <div style="width:64px;height:64px;background:linear-gradient(135deg,#2563eb,#7c3aed);border-radius:16px;display:flex;align-items:center;justify-content:center;margin:0 auto 1rem">
+          <i class="fas fa-landmark text-white" style="font-size:1.6rem"></i></div>
+        <h3 class="fw-bold">Welcome Back</h3>
+        <p class="text-muted small">Sign in to your LoanSense account</p>
+      </div>
+      <form method="POST">
+        <div class="mb-3">
+          <label class="form-label fw-semibold small">Email Address</label>
+          <div class="input-group">
+            <span class="input-group-text"><i class="fas fa-envelope text-muted"></i></span>
+            <input type="email" name="email" class="form-control" placeholder="you@example.com" required>
+          </div>
+        </div>
+        <div class="mb-4">
+          <label class="form-label fw-semibold small">Password</label>
+          <div class="input-group">
+            <span class="input-group-text"><i class="fas fa-lock text-muted"></i></span>
+            <input type="password" name="password" class="form-control" placeholder="••••••••" required>
+          </div>
+        </div>
+        <button type="submit" class="btn btn-primary w-100 py-3 fw-semibold" style="border-radius:12px">
+          <i class="fas fa-sign-in-alt me-2"></i>Sign In</button>
+      </form>
+      <div class="text-center mt-4">
+        <p class="text-muted small">Do not have an account? <a href="/register" class="text-primary fw-semibold">Register here</a></p>
+        <hr class="my-3">
+        <p class="text-muted small"><strong>Demo Admin:</strong> admin@loan.com / Admin@123</p>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
